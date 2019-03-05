@@ -1,0 +1,189 @@
+openapi: "3.0.0"
+info:
+  title: サンプル API
+  version: "0.1.0"
+  description: |-
+    言語評価用サンプル API です。
+
+servers:
+  - url: http://localhost:3000/v1
+    description: 開発環境サーバ
+
+tags:
+  - name: comments
+
+paths:
+  /comments:
+    get:
+      tags:
+        - comments
+      summary: コメント一覧
+      description: >
+        コメントの一覧を取得する。並び順は `id` の降順となる。
+      responses:
+        200:
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: array
+                description: 最大 20 件。
+                items:
+                  $ref: "#/components/schemas/Comment"
+
+    post:
+      tags:
+        - comments
+      summary: スレッドへのコメント登録
+      description: >
+        コメントを登録する。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: 内容
+                  example: >
+                    島大百科が便利 !!
+                contributor_name:
+                  type: string
+                  description: 投稿者名
+                  example: 谷口さん
+              required:
+                - content
+                - contributor_name
+      responses:
+        201:
+          description: Created.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Comment"
+        422:
+          $ref: "#/components/responses/UnprocessableEntity"
+
+  /comments/{comment_id}:
+    delete:
+      summary: コメント削除
+      description: >
+        コメントを削除する。
+      parameters:
+        - $ref: "#/components/parameters/commentId"
+      responses:
+        204:
+          description: No Content.
+        404:
+          $ref: "#/components/responses/NotFound"
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        message:
+          type: string
+          description: メッセージ
+      required:
+        - message
+
+    FieldError:
+      type: object
+      properties:
+        field:
+          type: string
+          description: フィールド名
+          example: title
+        code:
+          type: string
+          description: コード
+          enum:
+            - missing_field
+            - invalid
+            - already_exists
+      required:
+        - field
+        - code
+
+    NotFoundError:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          properties:
+            message:
+              example: Not Found
+
+    UnauthorizedError:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          properties:
+            message:
+              example: Unauthorized
+
+    UnprocessableEntityError:
+      allOf:
+        - $ref: "#/components/schemas/Error"
+        - type: object
+          properties:
+            message:
+              example: Validation Failed
+            errors:
+              type: array
+              items:
+                $ref: "#/components/schemas/FieldError"
+          required:
+            - errors
+
+    Comment:
+      type: object
+      description: コメント
+      required:
+        - id
+        - content
+        - contributor_name
+        - created_at
+      properties:
+        id:
+          type: string
+          description: シーケンス id
+          example: 1
+        content:
+          type: string
+          description: 内容
+          example: 島大百科が便利 !!
+        contributor_name:
+          type: string
+          description: 内容
+          example: 谷口さん
+        created_at:
+          type: string
+          format: date-time
+          description: コメント作成日時
+
+  parameters:
+    commentId:
+      name: comment_id
+      in: path
+      description: コメント ID
+      required: true
+      example: 1
+      schema:
+        type: string
+
+  responses:
+    NotFound:
+      description: Not Found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/NotFoundError"
+
+    UnprocessableEntity:
+      description: Validation failed.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/UnprocessableEntityError"
