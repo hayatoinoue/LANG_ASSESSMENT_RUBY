@@ -1,12 +1,8 @@
 require 'rails_helper'
 
 RSpec.describe Comment, type: :model do
-  it "is valid with a contributor_name and content" do
-    comment = Comment.new(
-      contributor_name: "Tester Name",
-      content: "Test Content"
-    )
-    expect(comment).to be_valid
+  it "has a valid factory" do
+    expect(build(:comment)).to be_valid
   end
 
   it "is invalid without a contributor_name" do
