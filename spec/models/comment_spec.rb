@@ -38,12 +38,4 @@ RSpec.describe Comment, type: :model do
       expect(comment.errors[:content]).to include("is too long (maximum is 255 characters)")
     end
   end
-
-  describe "with DB" do
-    it "contributor_name not null" do
-      comment = build(:comment, contributor_name: nil)
-      expect {comment.save!(validate: false)}.to raise_error(ActiveRecord::StatementInvalid)
-    end
-  end
-
 end
